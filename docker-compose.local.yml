@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --save
+      - "60"
+      - "1000"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  media-clustering-api:
+    build: .
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CLUSTER_DEAD_LETTER_STREAM: streams:media.cluster.deadletter
+      CLUSTER_STREAM_MAXLEN: "10000"
+      CLUSTER_STREAM_APPROXIMATE_TRIM: "true"
+      CLUSTER_MAX_ATTEMPTS: "5"
+      CLUSTER_RETRY_IDLE_MS: "60000"
+      CLUSTER_READ_COUNT: "8"
+      INTERNAL_TOKEN: super-secret-token
+      CLUSTER_STREAM_KEY: streams:media.cluster
+      CLUSTER_CONSUMER_GROUP: media-clustering-workers
+      CLUSTER_WORKER_CONSUMER_NAME: media-clustering-worker
+    ports:
+      - "9007:9007"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  media-clustering-worker:
+    build: .
+    command: ["python", "workers/run_worker.py"]
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      CLUSTER_DEAD_LETTER_STREAM: streams:media.cluster.deadletter
+      CLUSTER_STREAM_MAXLEN: "10000"
+      CLUSTER_STREAM_APPROXIMATE_TRIM: "true"
+      CLUSTER_MAX_ATTEMPTS: "5"
+      CLUSTER_RETRY_IDLE_MS: "60000"
+      CLUSTER_READ_COUNT: "8"
+      INTERNAL_TOKEN: super-secret-token
+      CLUSTER_STREAM_KEY: streams:media.cluster
+      CLUSTER_CONSUMER_GROUP: media-clustering-workers
+      CLUSTER_WORKER_CONSUMER_NAME: media-clustering-worker
+    depends_on:
+      redis:
+        condition: service_healthy
+
+networks:
+  default:
+    name: sploot-media-clustering
+
+volumes:
+  redis-data:
