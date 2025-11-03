@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install minimal dependencies for mock storage
+RUN pip install --no-cache-dir fastapi==0.115.2 uvicorn[standard]==0.30.6 pillow==10.4.0 "numpy<2.0"
+
+COPY scripts/mock_storage_service.py /app/mock_storage_service.py
+
+EXPOSE 8000
+
+CMD ["python", "mock_storage_service.py"]
