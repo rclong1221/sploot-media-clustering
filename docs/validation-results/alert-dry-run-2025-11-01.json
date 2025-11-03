@@ -1,0 +1,58 @@
+[
+  {
+    "labels": {
+      "alertname": "ClusterJobFailuresHigh",
+      "service": "sploot-cluster",
+      "severity": "critical",
+      "environment": "staging"
+    },
+    "annotations": {
+      "summary": "Clustering failures exceeded threshold",
+      "description": "cluster_jobs_total{outcome!=\"success\"} rate > 1/min for 5 minutes"
+    },
+    "startsAt": "2025-11-01T17:19:24Z",
+    "endsAt": "2025-11-01T17:24:24Z"
+  },
+  {
+    "labels": {
+      "alertname": "ClusterLatencyP95High",
+      "service": "sploot-cluster",
+      "severity": "warning",
+      "environment": "staging"
+    },
+    "annotations": {
+      "summary": "Clustering latency p95 above target",
+      "description": "cluster_job_duration_seconds p95 > 5s for 10 minutes"
+    },
+    "startsAt": "2025-11-01T17:19:24Z",
+    "endsAt": "2025-11-01T17:24:24Z"
+  },
+  {
+    "labels": {
+      "alertname": "ClusterFeedbackFailures",
+      "service": "sploot-cluster",
+      "severity": "critical",
+      "environment": "staging"
+    },
+    "annotations": {
+      "summary": "Merge/Split feedback is failing",
+      "description": "cluster_feedback_operations_total{outcome!=\"success\"} increased"
+    },
+    "startsAt": "2025-11-01T17:19:24Z",
+    "endsAt": "2025-11-01T17:24:24Z"
+  },
+  {
+    "labels": {
+      "alertname": "MediaClusterStreamLagHigh",
+      "service": "media-clustering-legacy",
+      "severity": "info",
+      "environment": "staging"
+    },
+    "annotations": {
+      "summary": "Legacy worker stream lag check (optional)",
+      "description": "media_cluster_stream_lag_seconds > 30s"
+    },
+    "startsAt": "2025-11-01T17:19:24Z",
+    "endsAt": "2025-11-01T17:24:24Z"
+  }
+]
