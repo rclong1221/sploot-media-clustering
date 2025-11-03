@@ -23,7 +23,10 @@ class Settings(BaseSettings):
     redis_healthcheck_interval: int = 30
     redis_retry_on_timeout: bool = True
 
-    internal_token: str = "changeme"
+    # Internal service-to-service authentication token
+    # Generate using: python ../scripts/bootstrap_internal_token.py from repo root
+    # NEVER use the default in production!
+    internal_service_token: str = "changeme"
     namespace: str = "sploot.media.clusters"
 
     cluster_ttl_seconds: int = 86400
@@ -38,6 +41,15 @@ class Settings(BaseSettings):
     cluster_read_count: int = 16
     cluster_retry_idle_ms: int = 60000
     cluster_max_attempts: int = 5
+    worker_metrics_enabled: bool = True
+    worker_metrics_port: int = 9105
+    worker_metrics_host: str = "0.0.0.0"
+    
+    storage_service_url: str = "http://localhost:8000"
+    embedding_model_name: str = "vit_small_patch16_224.augreg_in21k"
+    embedding_device: str = "auto"  # "auto", "cuda", or "cpu"
+    clustering_eps: float = 0.3
+    clustering_min_samples: int = 2
 
 
 @lru_cache
