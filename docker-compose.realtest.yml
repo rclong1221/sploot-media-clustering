@@ -1,0 +1,11 @@
+version: '3.8'
+
+# Override for testing with real pet images served from host
+# Usage: docker compose -f docker-compose.local.yml -f docker-compose.realtest.yml up -d
+
+services:
+  media-clustering-worker:
+    environment:
+      # Point to host machine's storage service (port 8001)
+      STORAGE_SERVICE_URL: http://host.docker.internal:8001
+      EMBEDDING_DEVICE: cpu

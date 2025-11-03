@@ -1,0 +1,41 @@
+route:
+  receiver: media-clustering-oncall
+  group_by: ['alertname', 'service']
+  routes:
+    - match:
+        severity: critical
+      receiver: media-clustering-pagerduty
+    - match:
+        severity: warning
+      receiver: media-clustering-slack
+
+time_intervals:
+  - name: media-clustering-business-hours
+    time_intervals:
+      - weekdays: ['monday:friday']
+        times:
+          - start_time: '09:00'
+            end_time: '18:00'
+
+receivers:
+  - name: media-clustering-oncall
+    slack_configs:
+      - api_url: ${SLACK_WEBHOOK_URL}
+        channel: '#sploot-media-alerts'
+        title: '{{ template "pagerduty.title" . }}'
+        text: '{{ template "pagerduty.description" . }}'
+  - name: media-clustering-pagerduty
+    pagerduty_configs:
+      - routing_key: ${PAGERDUTY_ROUTING_KEY}
+        severity: 'critical'
+        description: '{{ template "pagerduty.description" . }}'
+  - name: media-clustering-slack
+    slack_configs:
+      - api_url: ${SLACK_WEBHOOK_URL}
+        channel: '#sploot-media-alerts'
+        send_resolved: true
+        title: '{{ .CommonLabels.alertname }}'
+        text: 'Alert: {{ .CommonLabels.alertname }}\nDetails: {{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+
+templates:
+  - 'templates/*.tmpl'

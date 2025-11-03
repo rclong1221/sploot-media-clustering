@@ -216,6 +216,9 @@ This will start:
 - **Redis 7.4** on port `6379`
 - **API server** on port `9007`
 - **Background worker** consuming from Redis Streams
+- **Prometheus metrics** from the worker on port `9105`
+
+To seed load during staging rehearsals, use `scripts/replay_staging_traffic.py` with the sample payloads under `docs/examples`.
 
 To stop:
 ```bash
@@ -271,6 +274,14 @@ All configuration is managed via environment variables using Pydantic Settings. 
 | `CLUSTER_READ_COUNT` | `16` | Max messages per read |
 | `CLUSTER_RETRY_IDLE_MS` | `60000` | Retry idle time for pending messages |
 | `CLUSTER_MAX_ATTEMPTS` | `5` | Max retry attempts before dead-letter |
+
+### Worker Metrics
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WORKER_METRICS_ENABLED` | `true` | Toggle the Prometheus metrics endpoint |
+| `WORKER_METRICS_HOST` | `0.0.0.0` | Interface the metrics server binds to |
+| `WORKER_METRICS_PORT` | `9105` | Port exposing `/metrics` for Prometheus |
 
 ## API Reference
 
@@ -406,20 +417,23 @@ X-Internal-Token: super-secret-token
 Run the test suite using pytest:
 
 ```bash
+# Activate the virtualenv if you have not already
+source .venv/bin/activate
+
 # Run all tests
 pytest
 
 # Run with coverage
 pytest --cov=src/sploot_media_clustering --cov-report=html
 
-# Run specific test file
+# Run the Redis Streams integration tests backed by fakeredis
 pytest tests/test_stream_pipeline.py
 
 # Run with verbose output
 pytest -v
 ```
 
-Tests use `fakeredis` for mocking Redis operations, allowing fast, isolated unit testing without requiring a real Redis instance.
+The Redis Streams pipeline tests in `tests/test_stream_pipeline.py` rely on `fakeredis`, so they run entirely in memory without requiring a live Redis instance.
 
 ## Deployment
 
@@ -465,6 +479,11 @@ Additional documentation is available in the `docs/` directory:
 - **[postgres-persistence.md](docs/postgres-persistence.md)** - Plans for persistent storage layer
 - **[redis-streams-ingestion.md](docs/redis-streams-ingestion.md)** - Deep dive into Redis Streams architecture
 - **[roadmap.md](docs/roadmap.md)** - Project roadmap and upcoming features
+- **[staging-soak-rehearsal.md](docs/staging-soak-rehearsal.md)** - Checklist and schedule for the staging soak rehearsal
+- **[observability-dashboards.md](docs/observability-dashboards.md)** - Metrics, dashboards, and alert policies
+- **dashboards/media-clustering-redis-streams.json** - Grafana dashboard definition for Redis Streams metrics
+- **scripts/deploy-dashboards.sh** - Helper to publish dashboards via the Grafana API
+- **scripts/replay_staging_traffic.py** - Traffic replay utility for staging soak tests
 - **[tracing-metrics.md](docs/tracing-metrics.md)** - Observability, tracing, and metrics integration
 
 ## Roadmap

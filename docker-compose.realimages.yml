@@ -1,0 +1,12 @@
+version: '3.8'
+
+# Override for testing with REAL pet images
+# Usage: docker compose -f docker-compose.local.yml -f docker-compose.realimages.yml up --build
+
+services:
+  mock-storage:
+    environment:
+      USE_REAL_IMAGES: "true"
+    volumes:
+      # Mount real pet images directory into container
+      - /Users/dollerinho/sploot/Pet Images:/pet-images:ro

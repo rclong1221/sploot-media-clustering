@@ -76,6 +76,15 @@
 - **Logs**: Use structured logging capturing `job_id`, `pet_id`, `attempt`, `trace_id`.
 - **Tracing**: Propagate OpenTelemetry context from auth-service (span in HTTP handler) to worker; attach `job_id` as span attribute.
 - **Health Checks**: Add `/internal/health/redis` endpoint verifying latency of `PING` and availability of consumer group.
+- **Current status**: Worker emits JSON logs with job metadata and exposes Prometheus metrics at `/metrics` (see `observability-dashboards.md`).
+- **Alerting**: Alertmanager routing configuration is defined in `config/alertmanager.yaml`; staging environment must provide Slack and PagerDuty credentials prior to the soak.
+
+## Production Canary Rollout Plan
+- **Canary enablement**: Use the feature flag `redis_streams_media_cluster_enabled` to roll out to 10% of production tenants while watching stream lag, retry, and fallback metrics for 30 minutes.
+- **Ramp strategy**: If canary tenants remain healthy, increase to 50% for an additional 60 minutes; proceed to 100% once alerts stay green. Detailed steps are documented in `production-rollout.md`.
+- **Rollback**: Immediately toggle the flag back to 0% if lag, retries, or downstream errors exceed thresholds. Maintain the HTTP enqueue fallback path until post-rollout stability is achieved.
+- **Fallback removal**: After 24–48 hours of steady-state success at 100%, remove the HTTP fallback code path in auth-service and clean up the feature flag configuration.
+- **Runbook updates**: Align documentation in `observability-dashboards.md` and `production-rollout.md` so on-call engineers have current procedures.
 
 ## Deployment Steps
 1. Update `sploot-auth-service` to publish to Redis Streams using environment-driven configuration.

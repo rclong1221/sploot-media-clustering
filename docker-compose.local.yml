@@ -1,5 +1,8 @@
 version: "3.9"
 
+# Minimal local development stack: Redis + clustering API/worker.
+# Observability extras (Prometheus/Grafana) intentionally omitted to keep setup light.
+
 services:
   redis:
     image: redis:7.4-alpine
@@ -21,7 +24,11 @@ services:
       retries: 5
 
   media-clustering-api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.local
     environment:
       REDIS_URL: redis://redis:6379/0
       CLUSTER_DEAD_LETTER_STREAM: streams:media.cluster.deadletter
@@ -30,7 +37,8 @@ services:
       CLUSTER_MAX_ATTEMPTS: "5"
       CLUSTER_RETRY_IDLE_MS: "60000"
       CLUSTER_READ_COUNT: "8"
-      INTERNAL_TOKEN: super-secret-token
+      # SECURITY: Set via .env.local or secrets management - do not commit real token!
+      INTERNAL_SERVICE_TOKEN: myaMTCX99LeE5NsBNkmkD9ksWxnH5Rj3sTf6lumK26HZizuMfl4FTgEKB5hoda8t
       CLUSTER_STREAM_KEY: streams:media.cluster
       CLUSTER_CONSUMER_GROUP: media-clustering-workers
       CLUSTER_WORKER_CONSUMER_NAME: media-clustering-worker
@@ -41,23 +49,53 @@ services:
         condition: service_healthy
 
   media-clustering-worker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     command: ["python", "workers/run_worker.py"]
+    env_file:
+      - .env.local
     environment:
       REDIS_URL: redis://redis:6379/0
+      STORAGE_SERVICE_URL: http://host.docker.internal:8000/api/v1/internal
+      INTERNAL_TOKEN: myaMTCX99LeE5NsBNkmkD9ksWxnH5Rj3sTf6lumK26HZizuMfl4FTgEKB5hoda8t
       CLUSTER_DEAD_LETTER_STREAM: streams:media.cluster.deadletter
       CLUSTER_STREAM_MAXLEN: "10000"
       CLUSTER_STREAM_APPROXIMATE_TRIM: "true"
       CLUSTER_MAX_ATTEMPTS: "5"
       CLUSTER_RETRY_IDLE_MS: "60000"
       CLUSTER_READ_COUNT: "8"
-      INTERNAL_TOKEN: super-secret-token
+      # Workers don't need the token - only API server validates it
       CLUSTER_STREAM_KEY: streams:media.cluster
       CLUSTER_CONSUMER_GROUP: media-clustering-workers
       CLUSTER_WORKER_CONSUMER_NAME: media-clustering-worker
+      WORKER_METRICS_PORT: "9105"
+      WORKER_METRICS_HOST: "0.0.0.0"
+      EMBEDDING_DEVICE: "cpu"
+      CLUSTERING_EPS: "0.3"
+      CLUSTERING_MIN_SAMPLES: "2"
     depends_on:
       redis:
         condition: service_healthy
+    ports:
+      - "9105:9105"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  mock-storage:
+    profiles:
+      - storage
+    build:
+      context: .
+      dockerfile: Dockerfile.storage
+    ports:
+      - "8000:8000"
+    environment:
+      # Mock storage doesn't need authentication in local dev
+      USE_REAL_IMAGES: "true"
+      REAL_PET_IMAGES_PATH: /pet-images/Shamu
+    volumes:
+      - /Users/dollerinho/sploot/Pet Images/Shamu:/pet-images/Shamu:ro
 
 networks:
   default:

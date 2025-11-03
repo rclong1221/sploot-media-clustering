@@ -7,8 +7,18 @@ from .services.clustering import cluster_service
 
 
 def create_app() -> FastAPI:
+    """Create the internal clustering service API.
+    
+    This service is INTERNAL-ONLY and should only be called by sploot-auth-service.
+    It handles clustering computation and storage but has no concept of users,
+    authentication, or authorization.
+    """
     settings = get_settings()
-    app = FastAPI(title=settings.app_name, docs_url=None, redoc_url=None)
+    app = FastAPI(
+        title=settings.app_name,
+        docs_url="/docs" if settings.environment == "development" else None,
+        redoc_url="/redoc" if settings.environment == "development" else None,
+    )
 
     @app.get("/healthz", tags=["health"], summary="Service health probe")
     async def health() -> dict[str, str]:

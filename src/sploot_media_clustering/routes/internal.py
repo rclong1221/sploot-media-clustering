@@ -13,8 +13,13 @@ router = APIRouter()
 
 
 def verify_internal_token(token: Annotated[str | None, Header(alias="X-Internal-Token")]) -> str:
+    """Verify the internal service authentication token.
+    
+    The token must match the INTERNAL_SERVICE_TOKEN environment variable.
+    This protects internal endpoints from unauthorized access.
+    """
     settings = get_settings()
-    if token != settings.internal_token:
+    if token != settings.internal_service_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid internal token")
     return token
 
@@ -32,6 +37,7 @@ class ClusterMember(BaseModel):
     image_id: str
     score: float
     position: int
+    quality_score: float | None = Field(default=None, alias="qualityScore")
 
 
 class ClusterPayload(BaseModel):

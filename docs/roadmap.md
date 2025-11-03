@@ -13,26 +13,34 @@
    - [x] Add retry/backoff + trace metadata + HTTP fallback.
 3. **Worker Consumer**
    - [x] Implement blocking `XREADGROUP` loop, retries, dead-letter handling.
-   - [ ] Structured logging + Prometheus metrics.
+   - [x] Structured logging + Prometheus metrics (feeds `docs/observability-dashboards.md`).
 4. **QA & Rollout**
    - [x] Integration tests with fakeredis.
-   - [ ] Staging soak test, enable feature flag in production, deprecate HTTP enqueue fallback.
+   - [ ] Deploy to production, enable feature flag gradually (10% → 50% → 100%).
+   - [ ] Monitor worker metrics endpoint for lag/retries during ramp.
+   - [ ] Remove HTTP enqueue fallback once stable at 100%.
 
 ## Epic 2 – High-Fidelity Clustering (Embeddings)
 **Objective**: Deliver accurate, low-latency clustering using an embedding-based mixture model.
 
 ### Milestones
-1. **Model Selection & Eval**
-   - Benchmark candidate embedders on pet dataset.
-   - Choose model + fine-tuning plan.
+1. **Clustering Engine**
+   - [x] Implement DBSCAN-based clustering with cosine similarity.
+   - [x] Hero selection by centroid proximity.
+   - [x] Integrate into worker pipeline.
+   - [x] Unit tests for clustering logic (4/4 passing).
 2. **Inference Service**
-   - Package model (ONNX/TorchScript), support GPU+CPU.
-   - Add observability + batching logic.
-3. **Clustering Engine**
-   - Implement incremental mixture model + hero scoring.
-   - Integrate into worker pipeline.
-4. **Validation & Rollout**
-   - Offline evaluation, feature flag rollout, performance tuning.
+   - [x] Vision transformer embedding model (timm/ViT).
+   - [x] Storage client for fetching image bytes.
+   - [x] Batch embedding inference.
+   - [x] Auto GPU detection (falls back to CPU if unavailable).
+3. **Integration & Validation**
+   - [x] Mock storage service with synthetic images.
+   - [x] End-to-end test script.
+   - [ ] Docker-based e2e test (worker + storage + Redis).
+   - [ ] Test with real pet images from storage.
+   - [ ] Tune clustering parameters based on results.
+   - [ ] Benchmark latency and quality metrics.
 
 ## Epic 3 – Durable Cluster Storage (Postgres)
 **Objective**: Persist cluster state and hero assets for cross-service use.
