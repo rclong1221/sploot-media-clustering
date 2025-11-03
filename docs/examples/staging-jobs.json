@@ -1,0 +1,33 @@
+[
+  {
+    "pet_id": "pet_staging_001",
+    "job_id": "job_staging_001",
+    "reason": "insights_ready",
+    "force": false,
+    "payload": {
+      "image_ids": ["img_100", "img_101", "img_102"],
+      "labels": ["Portraits", "Action Shots"],
+      "coverage": {"portrait": 0.55, "action": 0.45},
+      "quality_score": 0.82
+    },
+    "metadata": {
+      "triggered_by": "staging-seed",
+      "emitted_at": "2025-10-30T09:00:00Z"
+    }
+  },
+  {
+    "pet_id": "pet_staging_002",
+    "job_id": "job_staging_002",
+    "reason": "manual_refresh",
+    "force": true,
+    "payload": {
+      "image_ids": ["img_200", "img_201"],
+      "labels": ["Portraits"],
+      "quality_score": 0.91
+    },
+    "metadata": {
+      "triggered_by": "staging-ops",
+      "emitted_at": "2025-10-30T09:05:00Z"
+    }
+  }
+]
